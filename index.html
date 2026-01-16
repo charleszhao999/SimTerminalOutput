@@ -90,6 +90,36 @@
             border-color: #667eea;
         }
         
+        .input-group input[type="color"] {
+            width: 200px;
+            height: 45px;
+            padding: 5px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input[type="color"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
         .settings {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -196,6 +226,30 @@
                 <div class="input-group">
                     <label for="paddingInput">内边距 (像素):</label>
                     <input type="number" id="paddingInput" value="20" min="0" max="100" step="5">
+                </div>
+            </div>
+            
+            <div class="settings">
+                <div class="input-group">
+                    <label for="bgColorInput">背景颜色:</label>
+                    <input type="color" id="bgColorInput" value="#000000">
+                </div>
+                
+                <div class="input-group">
+                    <label for="textColorInput">文字颜色:</label>
+                    <input type="color" id="textColorInput" value="#FFFFFF">
+                </div>
+            </div>
+            
+            <div class="settings">
+                <div class="input-group">
+                    <label for="fontEnglishInput">英文字体:</label>
+                    <input type="text" id="fontEnglishInput" value="Cascadia Mono, Courier New, monospace" placeholder="例如: Cascadia Mono, monospace">
+                </div>
+                
+                <div class="input-group">
+                    <label for="fontChineseInput">中文字体:</label>
+                    <input type="text" id="fontChineseInput" value="Microsoft YaHei, SimHei, sans-serif" placeholder="例如: Microsoft YaHei, sans-serif">
                 </div>
             </div>
             

@@ -118,19 +118,36 @@ const dataURL = generator.toDataURL('image/png', 1.0);
             constructor(canvasId) {
                 this.canvas = document.getElementById(canvasId) || document.createElement('canvas');
                 this.ctx = this.canvas.getContext('2d', { alpha: false });
-                this.fontFamily = 'Courier New, monospace';
                 this.config = {
                     width: 800,
                     fontSize: 16,
                     padding: 20,
                     lineHeight: 1.5,
                     backgroundColor: '#000000',
-                    textColor: '#FFFFFF'
+                    textColor: '#FFFFFF',
+                    fontFamilyEnglish: 'Cascadia Mono, Courier New, monospace',
+                    fontFamilyChinese: 'Microsoft YaHei, SimHei, sans-serif'
                 };
             }
             
             updateConfig(config) {
                 this.config = { ...this.config, ...config };
+            }
+            
+            isChinese(char) {
+                const code = char.charCodeAt(0);
+                return (code >= 0x4E00 && code <= 0x9FFF) ||
+                       (code >= 0x3400 && code <= 0x4DBF) ||
+                       (code >= 0xF900 && code <= 0xFAFF);
+            }
+            
+            getFontForChar(char) {
+                const { fontSize, fontFamilyEnglish, fontFamilyChinese } = this.config;
+                if (this.isChinese(char)) {
+                    return `${fontSize}px ${fontFamilyChinese}`;
+                } else {
+                    return `${fontSize}px ${fontFamilyEnglish}`;
+                }
             }
             
             wrapText(text, maxWidth) {
@@ -143,23 +160,30 @@ const dataURL = generator.toDataURL('image/png', 1.0);
                         continue;
                     }
                     
-                    const metrics = this.ctx.measureText(line);
+                    let totalWidth = 0;
+                    for (let char of line) {
+                        this.ctx.font = this.getFontForChar(char);
+                        totalWidth += this.ctx.measureText(char).width;
+                    }
                     
-                    if (metrics.width <= maxWidth) {
+                    if (totalWidth <= maxWidth) {
                         wrappedLines.push(line);
                     } else {
                         let currentLine = '';
+                        let currentWidth = 0;
                         const chars = line.split('');
                         
                         for (let char of chars) {
-                            const testLine = currentLine + char;
-                            const testMetrics = this.ctx.measureText(testLine);
+                            this.ctx.font = this.getFontForChar(char);
+                            const charWidth = this.ctx.measureText(char).width;
                             
-                            if (testMetrics.width > maxWidth && currentLine !== '') {
+                            if (currentWidth + charWidth > maxWidth && currentLine !== '') {
                                 wrappedLines.push(currentLine);
                                 currentLine = char;
+                                currentWidth = charWidth;
                             } else {
-                                currentLine = testLine;
+                                currentLine += char;
+                                currentWidth += charWidth;
                             }
                         }
                         
@@ -173,9 +197,9 @@ const dataURL = generator.toDataURL('image/png', 1.0);
             }
             
             generate(text) {
-                const { width, fontSize, padding, lineHeight, backgroundColor, textColor } = this.config;
+                const { width, fontSize, padding, lineHeight, backgroundColor, textColor, fontFamilyEnglish } = this.config;
                 
-                this.ctx.font = `${fontSize}px ${this.fontFamily}`;
+                this.ctx.font = `${fontSize}px ${fontFamilyEnglish}`;
                 const availableWidth = width - (padding * 2);
                 const lines = this.wrapText(text, availableWidth);
                 const actualLineHeight = fontSize * lineHeight;
@@ -187,14 +211,18 @@ const dataURL = generator.toDataURL('image/png', 1.0);
                 this.ctx.fillStyle = backgroundColor;
                 this.ctx.fillRect(0, 0, width, height);
                 
-                this.ctx.font = `${fontSize}px ${this.fontFamily}`;
                 this.ctx.fillStyle = textColor;
                 this.ctx.textBaseline = 'top';
                 
-                lines.forEach((line, index) => {
-                    const x = padding;
-                    const y = padding + (index * actualLineHeight);
-                    this.ctx.fillText(line, x, y);
+                lines.forEach((line, lineIndex) => {
+                    let x = padding;
+                    const y = padding + (lineIndex * actualLineHeight);
+                    
+                    for (let char of line) {
+                        this.ctx.font = this.getFontForChar(char);
+                        this.ctx.fillText(char, x, y);
+                        x += this.ctx.measureText(char).width;
+                    }
                 });
                 
                 return { width, height, lineCount: lines.length };
