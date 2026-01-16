@@ -68,8 +68,13 @@ class TerminalImageGenerator {
             
             // 测量整行宽度 - 需要考虑混合字体
             let totalWidth = 0;
+            let currentFont = '';
             for (let char of line) {
-                this.ctx.font = this.getFontForChar(char);
+                const font = this.getFontForChar(char);
+                if (font !== currentFont) {
+                    this.ctx.font = font;
+                    currentFont = font;
+                }
                 totalWidth += this.ctx.measureText(char).width;
             }
             
@@ -79,10 +84,15 @@ class TerminalImageGenerator {
                 // 需要换行
                 let currentLine = '';
                 let currentWidth = 0;
+                let currentFont = '';
                 const chars = line.split('');
                 
                 for (let char of chars) {
-                    this.ctx.font = this.getFontForChar(char);
+                    const font = this.getFontForChar(char);
+                    if (font !== currentFont) {
+                        this.ctx.font = font;
+                        currentFont = font;
+                    }
                     const charWidth = this.ctx.measureText(char).width;
                     
                     if (currentWidth + charWidth > maxWidth && currentLine !== '') {
@@ -137,14 +147,19 @@ class TerminalImageGenerator {
         this.ctx.fillStyle = textColor;
         this.ctx.textBaseline = 'top';
         
-        // 绘制文本 - 逐字符绘制以支持混合字体
+        // 绘制文本 - 逐字符绘制以支持混合字体，但优化字体切换
         lines.forEach((line, lineIndex) => {
             let x = padding;
             const y = padding + (lineIndex * actualLineHeight);
+            let currentFont = '';
             
             for (let char of line) {
-                // 为每个字符设置合适的字体
-                this.ctx.font = this.getFontForChar(char);
+                // 仅在字体变化时切换
+                const font = this.getFontForChar(char);
+                if (font !== currentFont) {
+                    this.ctx.font = font;
+                    currentFont = font;
+                }
                 this.ctx.fillText(char, x, y);
                 x += this.ctx.measureText(char).width;
             }
