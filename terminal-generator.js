@@ -50,9 +50,9 @@ class TerminalImageGenerator {
             } else {
                 // 需要换行
                 let currentLine = '';
-                const words = line.split('');
+                const chars = line.split('');
                 
-                for (let char of words) {
+                for (let char of chars) {
                     const testLine = currentLine + char;
                     const testMetrics = this.ctx.measureText(testLine);
                     
