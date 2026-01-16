@@ -3,6 +3,10 @@
  * 生成黑底白字的终端风格图片，确保跨设备一致性
  */
 
+// 默认字体常量
+const DEFAULT_FONT_ENGLISH = 'Cascadia Mono';
+const DEFAULT_FONT_CHINESE = 'Microsoft YaHei';
+
 class TerminalImageGenerator {
     constructor() {
         this.canvas = document.getElementById('previewCanvas');
@@ -19,8 +23,8 @@ class TerminalImageGenerator {
             lineHeight: 1.5,
             backgroundColor: '#000000',
             textColor: '#FFFFFF',
-            fontFamilyEnglish: 'Cascadia Mono',
-            fontFamilyChinese: 'Microsoft YaHei'
+            fontFamilyEnglish: DEFAULT_FONT_ENGLISH,
+            fontFamilyChinese: DEFAULT_FONT_CHINESE
         };
         
         // 设备像素比，用于提高清晰度
@@ -226,14 +230,12 @@ function generateImage() {
     const padding = parseInt(document.getElementById('paddingInput').value) || 20;
     const backgroundColor = document.getElementById('bgColorInput').value || '#000000';
     const textColor = document.getElementById('textColorInput').value || '#FFFFFF';
-    const fontFamilyEnglish = document.getElementById('fontEnglishInput').value || 'Cascadia Mono';
-    const fontFamilyChinese = document.getElementById('fontChineseInput').value || 'Microsoft YaHei';
+    const fontFamilyEnglish = document.getElementById('fontEnglishInput').value || DEFAULT_FONT_ENGLISH;
+    const fontFamilyChinese = document.getElementById('fontChineseInput').value || DEFAULT_FONT_CHINESE;
     
     if (!text.trim()) {
-        // 清空画布内容
-        const currentWidth = generator.canvas.width;
-        const currentHeight = generator.canvas.height;
-        generator.ctx.clearRect(0, 0, currentWidth, currentHeight);
+        // 清空整个画布
+        generator.ctx.clearRect(0, 0, generator.canvas.width, generator.canvas.height);
         document.getElementById('imageInfo').textContent = '';
         return;
     }
@@ -260,10 +262,18 @@ function generateImage() {
     document.getElementById('outputSection').classList.remove('hidden');
 }
 
+// 跟踪是否已经设置了事件监听器
+let liveUpdateInitialized = false;
+
 /**
  * 设置实时更新
  */
 function setupLiveUpdate() {
+    // 防止重复设置
+    if (liveUpdateInitialized) {
+        return;
+    }
+    
     const inputs = [
         'textInput',
         'widthInput', 
@@ -282,6 +292,8 @@ function setupLiveUpdate() {
             element.addEventListener('input', generateImage);
         }
     });
+    
+    liveUpdateInitialized = true;
 }
 
 /**
