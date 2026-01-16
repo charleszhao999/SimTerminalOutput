@@ -118,6 +118,7 @@ const dataURL = generator.toDataURL('image/png', 1.0);
             constructor(canvasId) {
                 this.canvas = document.getElementById(canvasId) || document.createElement('canvas');
                 this.ctx = this.canvas.getContext('2d', { alpha: false });
+                this.ctx.imageSmoothingEnabled = false;
                 this.config = {
                     width: 800,
                     fontSize: 16,
@@ -125,9 +126,10 @@ const dataURL = generator.toDataURL('image/png', 1.0);
                     lineHeight: 1.5,
                     backgroundColor: '#000000',
                     textColor: '#FFFFFF',
-                    fontFamilyEnglish: 'Cascadia Mono, Courier New, monospace',
-                    fontFamilyChinese: 'Microsoft YaHei, SimHei, sans-serif'
+                    fontFamilyEnglish: 'Cascadia Mono',
+                    fontFamilyChinese: 'Microsoft YaHei'
                 };
+                this.dpr = window.devicePixelRatio || 1;
             }
             
             updateConfig(config) {
@@ -144,9 +146,9 @@ const dataURL = generator.toDataURL('image/png', 1.0);
             getFontForChar(char) {
                 const { fontSize, fontFamilyEnglish, fontFamilyChinese } = this.config;
                 if (this.isChinese(char)) {
-                    return `${fontSize}px ${fontFamilyChinese}`;
+                    return `${fontSize}px "${fontFamilyChinese}", SimHei, sans-serif`;
                 } else {
-                    return `${fontSize}px ${fontFamilyEnglish}`;
+                    return `${fontSize}px "${fontFamilyEnglish}", "Courier New", monospace`;
                 }
             }
             
@@ -209,14 +211,22 @@ const dataURL = generator.toDataURL('image/png', 1.0);
             generate(text) {
                 const { width, fontSize, padding, lineHeight, backgroundColor, textColor, fontFamilyEnglish } = this.config;
                 
-                this.ctx.font = `${fontSize}px ${fontFamilyEnglish}`;
+                this.ctx.font = `${fontSize}px "${fontFamilyEnglish}", "Courier New", monospace`;
                 const availableWidth = width - (padding * 2);
                 const lines = this.wrapText(text, availableWidth);
                 const actualLineHeight = fontSize * lineHeight;
                 const height = (lines.length * actualLineHeight) + (padding * 2);
                 
-                this.canvas.width = width;
-                this.canvas.height = height;
+                const scaledWidth = width * this.dpr;
+                const scaledHeight = height * this.dpr;
+                
+                this.canvas.width = scaledWidth;
+                this.canvas.height = scaledHeight;
+                this.canvas.style.width = width + 'px';
+                this.canvas.style.height = height + 'px';
+                
+                this.ctx.scale(this.dpr, this.dpr);
+                this.ctx.imageSmoothingEnabled = false;
                 
                 this.ctx.fillStyle = backgroundColor;
                 this.ctx.fillRect(0, 0, width, height);
