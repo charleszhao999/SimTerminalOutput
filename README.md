@@ -12,6 +12,8 @@
 - ✅ **跨设备一致性**: 使用Canvas 2D API确保相同输入产生相同输出
 - ✅ **自动换行**: 超长文本自动换行处理
 - ✅ **可自定义参数**: 字体大小、内边距等可调整
+- ✅ **自定义颜色**: 支持自定义字体颜色和背景颜色
+- ✅ **混合字体支持**: 支持分别指定英文和中文字体，英文默认为Cascadia Mono，中文默认为微软雅黑
 
 ## 快速开始
 
@@ -52,6 +54,10 @@ npx http-server
    - 图片宽度: 800像素（默认）
    - 字体大小: 16像素（默认）
    - 内边距: 20像素（默认）
+   - 背景颜色: #000000（默认黑色）
+   - 文字颜色: #FFFFFF（默认白色）
+   - 英文字体: Cascadia Mono（默认）
+   - 中文字体: Microsoft YaHei（默认）
 
 3. **生成并下载**: 点击生成图片，预览满意后下载
 
@@ -70,7 +76,11 @@ const generator = new TerminalImageGenerator();
 generator.updateConfig({
     width: 1000,
     fontSize: 18,
-    padding: 30
+    padding: 30,
+    backgroundColor: '#001144',
+    textColor: '#00ffff',
+    fontFamilyEnglish: 'Cascadia Mono, Courier New, monospace',
+    fontFamilyChinese: 'Microsoft YaHei, SimHei, sans-serif'
 });
 
 // 生成图片
@@ -104,6 +114,8 @@ const generator = new TerminalImageGenerator()
   - `lineHeight`: 行高倍数（默认1.5）
   - `backgroundColor`: 背景色（默认'#000000'）
   - `textColor`: 文字颜色（默认'#FFFFFF'）
+  - `fontFamilyEnglish`: 英文字体（默认'Cascadia Mono, Courier New, monospace'）
+  - `fontFamilyChinese`: 中文字体（默认'Microsoft YaHei, SimHei, sans-serif'）
 
 **generate(text)**
 - 生成终端图片
@@ -125,8 +137,9 @@ const generator = new TerminalImageGenerator()
 
 - **HTML5 Canvas**: 用于图像渲染
 - **原生JavaScript**: 无任何外部依赖
-- **Courier New字体**: 使用系统标准等宽字体，确保跨平台一致性
+- **混合字体系统**: 英文默认使用Cascadia Mono，中文默认使用微软雅黑，自动根据字符类型选择合适的字体
 - **确定性渲染**: 使用Canvas 2D Context确保相同输入产生相同输出
+- **Unicode支持**: 完整支持中文及其他Unicode字符
 
 ## 浏览器兼容性
 

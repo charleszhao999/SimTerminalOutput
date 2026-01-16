@@ -97,6 +97,8 @@ const generator = new TerminalImageGenerator();
 - `lineHeight` (number): 行高倍数（默认 1.5）
 - `backgroundColor` (string): 背景色（默认 '#000000'）
 - `textColor` (string): 文字颜色（默认 '#FFFFFF'）
+- `fontFamilyEnglish` (string): 英文字体（默认 'Cascadia Mono, Courier New, monospace'）
+- `fontFamilyChinese` (string): 中文字体（默认 'Microsoft YaHei, SimHei, sans-serif'）
 
 ```javascript
 generator.updateConfig({
@@ -104,7 +106,9 @@ generator.updateConfig({
     fontSize: 18,
     padding: 30,
     backgroundColor: '#1a1a1a',
-    textColor: '#00ff00'
+    textColor: '#00ff00',
+    fontFamilyEnglish: 'Cascadia Mono, Courier New, monospace',
+    fontFamilyChinese: 'Microsoft YaHei, SimHei, sans-serif'
 });
 ```
 
@@ -175,7 +179,18 @@ A: 增大 `width` 参数或减小 `fontSize` 参数。
 
 **Q: 支持什么字符？**
 
-A: 支持所有 Unicode 字符，包括中文、日文、韩文、表情符号等。
+A: 支持所有 Unicode 字符，包括中文、日文、韩文、表情符号等。系统会自动为中文字符使用中文字体（默认微软雅黑），英文字符使用英文字体（默认Cascadia Mono）。
+
+**Q: 如何修改字体？**
+
+A: 使用 `updateConfig` 修改 `fontFamilyEnglish` 和 `fontFamilyChinese` 参数:
+
+```javascript
+generator.updateConfig({
+    fontFamilyEnglish: 'Consolas, monospace',
+    fontFamilyChinese: 'SimSun, serif'
+});
+```
 
 **Q: 如何在 React/Vue 中使用？**
 
@@ -196,12 +211,12 @@ A: 可以，本项目使用 MIT 协议。
 ## 技术细节
 
 - **渲染引擎**: HTML5 Canvas 2D API
-- **字体**: Courier New (系统自带等宽字体)
+- **字体系统**: 混合字体支持，英文默认Cascadia Mono，中文默认微软雅黑
 - **确定性**: 相同输入和配置在不同设备上产生相同输出
 - **浏览器兼容性**: 支持所有现代浏览器
 - **文件大小**: 
-  - index.html: ~6KB
-  - terminal-generator.js: ~5.7KB
+  - index.html: ~8KB
+  - terminal-generator.js: ~6.5KB
   - 无外部依赖
 
 ## 许可证
