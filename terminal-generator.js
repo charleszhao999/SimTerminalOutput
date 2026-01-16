@@ -153,9 +153,9 @@ class TerminalImageGenerator {
         this.canvas.width = scaledWidth;
         this.canvas.height = scaledHeight;
         
-        // 设置画布显示尺寸
+        // 设置画布显示宽度，让CSS的height: auto维持纵横比
         this.canvas.style.width = width + 'px';
-        this.canvas.style.height = height + 'px';
+        this.canvas.style.height = ''; // 清除高度，让CSS控制以维持纵横比
         
         // 重置变换矩阵，避免累积缩放问题
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);

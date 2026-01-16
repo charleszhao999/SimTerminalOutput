@@ -223,7 +223,7 @@ const dataURL = generator.toDataURL('image/png', 1.0);
                 this.canvas.width = scaledWidth;
                 this.canvas.height = scaledHeight;
                 this.canvas.style.width = width + 'px';
-                this.canvas.style.height = height + 'px';
+                this.canvas.style.height = ''; // 清除高度，让CSS控制以维持纵横比
                 
                 // 重置变换矩阵，避免累积缩放问题
                 this.ctx.setTransform(1, 0, 0, 1, 0, 0);
