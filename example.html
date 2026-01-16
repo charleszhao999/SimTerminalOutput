@@ -225,6 +225,8 @@ const dataURL = generator.toDataURL('image/png', 1.0);
                 this.canvas.style.width = width + 'px';
                 this.canvas.style.height = height + 'px';
                 
+                // 重置变换矩阵，避免累积缩放问题
+                this.ctx.setTransform(1, 0, 0, 1, 0, 0);
                 this.ctx.scale(this.dpr, this.dpr);
                 this.ctx.imageSmoothingEnabled = false;
                 

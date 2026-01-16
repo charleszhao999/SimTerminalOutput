@@ -153,6 +153,9 @@ class TerminalImageGenerator {
         this.canvas.style.width = width + 'px';
         this.canvas.style.height = height + 'px';
         
+        // 重置变换矩阵，避免累积缩放问题
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        
         // 缩放上下文以匹配设备像素比
         this.ctx.scale(this.dpr, this.dpr);
         
@@ -227,9 +230,10 @@ function generateImage() {
     const fontFamilyChinese = document.getElementById('fontChineseInput').value || 'Microsoft YaHei';
     
     if (!text.trim()) {
-        // 清空画布
-        generator.canvas.width = 0;
-        generator.canvas.height = 0;
+        // 清空画布内容
+        const currentWidth = generator.canvas.width;
+        const currentHeight = generator.canvas.height;
+        generator.ctx.clearRect(0, 0, currentWidth, currentHeight);
         document.getElementById('imageInfo').textContent = '';
         return;
     }
@@ -274,8 +278,8 @@ function setupLiveUpdate() {
     inputs.forEach(inputId => {
         const element = document.getElementById(inputId);
         if (element) {
+            // 只使用 input 事件以避免重复更新
             element.addEventListener('input', generateImage);
-            element.addEventListener('change', generateImage);
         }
     });
 }
