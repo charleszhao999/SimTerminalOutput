@@ -17,9 +17,9 @@ class TerminalImageGenerator {
         
         // 默认配置
         this.config = {
-            width: 800,
-            fontSize: 16,
-            padding: 20,
+            width: 1200,
+            fontSize: 24,
+            padding: 30,
             lineHeight: 1.5,
             backgroundColor: '#000000',
             textColor: '#FFFFFF',

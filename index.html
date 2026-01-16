@@ -181,6 +181,7 @@
         
         #previewCanvas {
             max-width: 100%;
+            height: auto;
             border: 1px solid #cbd5e0;
             border-radius: 4px;
             background: #000;
@@ -216,17 +217,17 @@
             <div class="settings">
                 <div class="input-group">
                     <label for="widthInput">图片宽度 (像素):</label>
-                    <input type="number" id="widthInput" value="800" min="200" max="2000" step="50">
+                    <input type="number" id="widthInput" value="1200" min="200" max="2000" step="50">
                 </div>
                 
                 <div class="input-group">
                     <label for="fontSizeInput">字体大小 (像素):</label>
-                    <input type="number" id="fontSizeInput" value="16" min="10" max="32" step="1">
+                    <input type="number" id="fontSizeInput" value="24" min="10" max="48" step="1">
                 </div>
                 
                 <div class="input-group">
                     <label for="paddingInput">内边距 (像素):</label>
-                    <input type="number" id="paddingInput" value="20" min="0" max="100" step="5">
+                    <input type="number" id="paddingInput" value="30" min="0" max="150" step="5">
                 </div>
             </div>
             
@@ -249,11 +250,6 @@
                         <option value="Cascadia Mono">Cascadia Mono</option>
                         <option value="Consolas">Consolas</option>
                         <option value="Courier New">Courier New</option>
-                        <option value="Monaco">Monaco</option>
-                        <option value="Menlo">Menlo</option>
-                        <option value="Source Code Pro">Source Code Pro</option>
-                        <option value="Fira Code">Fira Code</option>
-                        <option value="JetBrains Mono">JetBrains Mono</option>
                     </select>
                 </div>
                 
