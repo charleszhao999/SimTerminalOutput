@@ -8,6 +8,9 @@ class TerminalImageGenerator {
         this.canvas = document.getElementById('previewCanvas');
         this.ctx = this.canvas.getContext('2d', { alpha: false });
         
+        // 禁用图像平滑以提高文字清晰度
+        this.ctx.imageSmoothingEnabled = false;
+        
         // 默认配置
         this.config = {
             width: 800,
@@ -16,9 +19,12 @@ class TerminalImageGenerator {
             lineHeight: 1.5,
             backgroundColor: '#000000',
             textColor: '#FFFFFF',
-            fontFamilyEnglish: 'Cascadia Mono, Courier New, monospace',
-            fontFamilyChinese: 'Microsoft YaHei, SimHei, sans-serif'
+            fontFamilyEnglish: 'Cascadia Mono',
+            fontFamilyChinese: 'Microsoft YaHei'
         };
+        
+        // 设备像素比，用于提高清晰度
+        this.dpr = window.devicePixelRatio || 1;
     }
     
     /**
@@ -47,9 +53,9 @@ class TerminalImageGenerator {
     getFontForChar(char) {
         const { fontSize, fontFamilyEnglish, fontFamilyChinese } = this.config;
         if (this.isChinese(char)) {
-            return `${fontSize}px ${fontFamilyChinese}`;
+            return `${fontSize}px "${fontFamilyChinese}", SimHei, sans-serif`;
         } else {
-            return `${fontSize}px ${fontFamilyEnglish}`;
+            return `${fontSize}px "${fontFamilyEnglish}", "Courier New", monospace`;
         }
     }
     
@@ -121,7 +127,7 @@ class TerminalImageGenerator {
         const { width, fontSize, padding, lineHeight, backgroundColor, textColor, fontFamilyEnglish } = this.config;
         
         // 设置默认字体（必须在测量之前设置）
-        this.ctx.font = `${fontSize}px ${fontFamilyEnglish}`;
+        this.ctx.font = `${fontSize}px "${fontFamilyEnglish}", "Courier New", monospace`;
         
         // 计算可用宽度
         const availableWidth = width - (padding * 2);
@@ -135,9 +141,23 @@ class TerminalImageGenerator {
         // 计算画布高度
         const height = (lines.length * actualLineHeight) + (padding * 2);
         
-        // 设置画布尺寸
-        this.canvas.width = width;
-        this.canvas.height = height;
+        // 使用设备像素比提高清晰度
+        const scaledWidth = width * this.dpr;
+        const scaledHeight = height * this.dpr;
+        
+        // 设置画布实际尺寸（高分辨率）
+        this.canvas.width = scaledWidth;
+        this.canvas.height = scaledHeight;
+        
+        // 设置画布显示尺寸
+        this.canvas.style.width = width + 'px';
+        this.canvas.style.height = height + 'px';
+        
+        // 缩放上下文以匹配设备像素比
+        this.ctx.scale(this.dpr, this.dpr);
+        
+        // 禁用图像平滑以提高文字清晰度
+        this.ctx.imageSmoothingEnabled = false;
         
         // 填充背景色
         this.ctx.fillStyle = backgroundColor;
@@ -203,11 +223,14 @@ function generateImage() {
     const padding = parseInt(document.getElementById('paddingInput').value) || 20;
     const backgroundColor = document.getElementById('bgColorInput').value || '#000000';
     const textColor = document.getElementById('textColorInput').value || '#FFFFFF';
-    const fontFamilyEnglish = document.getElementById('fontEnglishInput').value || 'Cascadia Mono, Courier New, monospace';
-    const fontFamilyChinese = document.getElementById('fontChineseInput').value || 'Microsoft YaHei, SimHei, sans-serif';
+    const fontFamilyEnglish = document.getElementById('fontEnglishInput').value || 'Cascadia Mono';
+    const fontFamilyChinese = document.getElementById('fontChineseInput').value || 'Microsoft YaHei';
     
     if (!text.trim()) {
-        alert('请输入文字内容！');
+        // 清空画布
+        generator.canvas.width = 0;
+        generator.canvas.height = 0;
+        document.getElementById('imageInfo').textContent = '';
         return;
     }
     
@@ -231,7 +254,30 @@ function generateImage() {
     
     // 显示输出区域
     document.getElementById('outputSection').classList.remove('hidden');
-    document.getElementById('downloadBtn').disabled = false;
+}
+
+/**
+ * 设置实时更新
+ */
+function setupLiveUpdate() {
+    const inputs = [
+        'textInput',
+        'widthInput', 
+        'fontSizeInput',
+        'paddingInput',
+        'bgColorInput',
+        'textColorInput',
+        'fontEnglishInput',
+        'fontChineseInput'
+    ];
+    
+    inputs.forEach(inputId => {
+        const element = document.getElementById(inputId);
+        if (element) {
+            element.addEventListener('input', generateImage);
+            element.addEventListener('change', generateImage);
+        }
+    });
 }
 
 /**
@@ -258,6 +304,9 @@ Server running on http://localhost:3000
 Ready to accept connections...`;
     
     document.getElementById('textInput').value = exampleText;
+    
+    // 设置实时更新
+    setupLiveUpdate();
     
     // 自动生成示例图片
     generateImage();

@@ -105,17 +105,18 @@
             border-color: #667eea;
         }
         
-        .input-group input[type="text"] {
+        .input-group select {
             width: 100%;
             padding: 12px;
             border: 2px solid #e2e8f0;
             border-radius: 6px;
             font-size: 14px;
-            font-family: 'Courier New', monospace;
+            background-color: white;
+            cursor: pointer;
             transition: border-color 0.3s;
         }
         
-        .input-group input[type="text"]:focus {
+        .input-group select:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -244,17 +245,33 @@
             <div class="settings">
                 <div class="input-group">
                     <label for="fontEnglishInput">英文字体:</label>
-                    <input type="text" id="fontEnglishInput" value="Cascadia Mono, Courier New, monospace" placeholder="例如: Cascadia Mono, monospace">
+                    <select id="fontEnglishInput">
+                        <option value="Cascadia Mono">Cascadia Mono</option>
+                        <option value="Consolas">Consolas</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Monaco">Monaco</option>
+                        <option value="Menlo">Menlo</option>
+                        <option value="Source Code Pro">Source Code Pro</option>
+                        <option value="Fira Code">Fira Code</option>
+                        <option value="JetBrains Mono">JetBrains Mono</option>
+                    </select>
                 </div>
                 
                 <div class="input-group">
                     <label for="fontChineseInput">中文字体:</label>
-                    <input type="text" id="fontChineseInput" value="Microsoft YaHei, SimHei, sans-serif" placeholder="例如: Microsoft YaHei, sans-serif">
+                    <select id="fontChineseInput">
+                        <option value="Microsoft YaHei">微软雅黑 (Microsoft YaHei)</option>
+                        <option value="SimHei">黑体 (SimHei)</option>
+                        <option value="SimSun">宋体 (SimSun)</option>
+                        <option value="KaiTi">楷体 (KaiTi)</option>
+                        <option value="FangSong">仿宋 (FangSong)</option>
+                        <option value="PingFang SC">苹方 (PingFang SC)</option>
+                        <option value="Noto Sans SC">Noto Sans SC</option>
+                    </select>
                 </div>
             </div>
             
             <div class="button-group">
-                <button class="btn btn-primary" onclick="generateImage()">生成图片</button>
                 <button class="btn btn-secondary" onclick="downloadImage()" id="downloadBtn">下载图片</button>
             </div>
             
