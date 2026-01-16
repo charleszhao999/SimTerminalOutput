@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimTerminalOutput - 程序化使用示例</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        h1 {
+            color: #2d3748;
+        }
+        
+        .example {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .example h3 {
+            color: #4a5568;
+            margin-top: 0;
+        }
+        
+        canvas {
+            border: 1px solid #e2e8f0;
+            margin: 10px 0;
+            display: block;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SimTerminalOutput - 程序化使用示例</h1>
+    <p>这个页面展示了如何在你的项目中程序化使用 TerminalImageGenerator。</p>
+    
+    <div class="example">
+        <h3>示例 1: 基本使用</h3>
+        <pre><code>// 引入脚本后，创建生成器实例
+const generator = new TerminalImageGenerator();
+
+// 生成图片
+const text = "$ echo 'Hello World'\\nHello World";
+generator.generate(text);
+
+// 下载图片
+generator.download('my-terminal.png');</code></pre>
+        <canvas id="example1"></canvas>
+    </div>
+    
+    <div class="example">
+        <h3>示例 2: 自定义配置</h3>
+        <pre><code>// 自定义宽度、字体大小和内边距
+generator.updateConfig({
+    width: 600,
+    fontSize: 14,
+    padding: 15
+});
+
+const text = "$ npm test\\nRunning tests...\\n✓ All tests passed!";
+generator.generate(text);</code></pre>
+        <canvas id="example2"></canvas>
+    </div>
+    
+    <div class="example">
+        <h3>示例 3: 中文支持</h3>
+        <pre><code>// 完全支持中文和其他Unicode字符
+generator.updateConfig({
+    width: 700,
+    fontSize: 16,
+    padding: 20
+});
+
+const text = "$ 运行程序\\n程序启动成功！\\n服务器运行在: http://localhost:3000";
+generator.generate(text);</code></pre>
+        <canvas id="example3"></canvas>
+    </div>
+    
+    <div class="example">
+        <h3>示例 4: 获取图片数据URL</h3>
+        <pre><code>// 生成图片后，可以获取Data URL用于其他用途
+const text = "$ git status\\nOn branch main\\nnothing to commit";
+generator.generate(text);
+
+// 获取PNG格式的Data URL
+const dataURL = generator.toDataURL('image/png', 1.0);
+
+// 可以用于显示在<img>标签中
+// <img src="dataURL" alt="Terminal Output" /></code></pre>
+        <canvas id="example4"></canvas>
+    </div>
+    
+    <script>
+        /**
+         * TerminalImageGenerator - 简化版（用于示例）
+         */
+        class TerminalImageGenerator {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId) || document.createElement('canvas');
+                this.ctx = this.canvas.getContext('2d', { alpha: false });
+                this.fontFamily = 'Courier New, monospace';
+                this.config = {
+                    width: 800,
+                    fontSize: 16,
+                    padding: 20,
+                    lineHeight: 1.5,
+                    backgroundColor: '#000000',
+                    textColor: '#FFFFFF'
+                };
+            }
+            
+            updateConfig(config) {
+                this.config = { ...this.config, ...config };
+            }
+            
+            wrapText(text, maxWidth) {
+                const lines = text.split('\n');
+                const wrappedLines = [];
+                
+                for (let line of lines) {
+                    if (line === '') {
+                        wrappedLines.push('');
+                        continue;
+                    }
+                    
+                    const metrics = this.ctx.measureText(line);
+                    
+                    if (metrics.width <= maxWidth) {
+                        wrappedLines.push(line);
+                    } else {
+                        let currentLine = '';
+                        const chars = line.split('');
+                        
+                        for (let char of chars) {
+                            const testLine = currentLine + char;
+                            const testMetrics = this.ctx.measureText(testLine);
+                            
+                            if (testMetrics.width > maxWidth && currentLine !== '') {
+                                wrappedLines.push(currentLine);
+                                currentLine = char;
+                            } else {
+                                currentLine = testLine;
+                            }
+                        }
+                        
+                        if (currentLine !== '') {
+                            wrappedLines.push(currentLine);
+                        }
+                    }
+                }
+                
+                return wrappedLines;
+            }
+            
+            generate(text) {
+                const { width, fontSize, padding, lineHeight, backgroundColor, textColor } = this.config;
+                
+                this.ctx.font = `${fontSize}px ${this.fontFamily}`;
+                const availableWidth = width - (padding * 2);
+                const lines = this.wrapText(text, availableWidth);
+                const actualLineHeight = fontSize * lineHeight;
+                const height = (lines.length * actualLineHeight) + (padding * 2);
+                
+                this.canvas.width = width;
+                this.canvas.height = height;
+                
+                this.ctx.fillStyle = backgroundColor;
+                this.ctx.fillRect(0, 0, width, height);
+                
+                this.ctx.font = `${fontSize}px ${this.fontFamily}`;
+                this.ctx.fillStyle = textColor;
+                this.ctx.textBaseline = 'top';
+                
+                lines.forEach((line, index) => {
+                    const x = padding;
+                    const y = padding + (index * actualLineHeight);
+                    this.ctx.fillText(line, x, y);
+                });
+                
+                return { width, height, lineCount: lines.length };
+            }
+            
+            toDataURL(type = 'image/png', quality = 1.0) {
+                return this.canvas.toDataURL(type, quality);
+            }
+            
+            download(filename = 'terminal-output.png') {
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = this.toDataURL();
+                link.click();
+            }
+        }
+        
+        // 示例 1
+        const gen1 = new TerminalImageGenerator('example1');
+        gen1.generate("$ echo 'Hello World'\nHello World");
+        
+        // 示例 2
+        const gen2 = new TerminalImageGenerator('example2');
+        gen2.updateConfig({
+            width: 600,
+            fontSize: 14,
+            padding: 15
+        });
+        gen2.generate("$ npm test\nRunning tests...\n✓ All tests passed!");
+        
+        // 示例 3
+        const gen3 = new TerminalImageGenerator('example3');
+        gen3.updateConfig({
+            width: 700,
+            fontSize: 16,
+            padding: 20
+        });
+        gen3.generate("$ 运行程序\n程序启动成功！\n服务器运行在: http://localhost:3000");
+        
+        // 示例 4
+        const gen4 = new TerminalImageGenerator('example4');
+        gen4.updateConfig({
+            width: 600,
+            fontSize: 15,
+            padding: 18
+        });
+        gen4.generate("$ git status\nOn branch main\nnothing to commit, working tree clean");
+    </script>
+</body>
+</html>
