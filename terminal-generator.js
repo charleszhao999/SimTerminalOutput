@@ -3,23 +3,32 @@
  * 生成黑底白字的终端风格图片，确保跨设备一致性
  */
 
+// 默认字体常量
+const DEFAULT_FONT_ENGLISH = 'Cascadia Mono';
+const DEFAULT_FONT_CHINESE = 'Microsoft YaHei';
+
 class TerminalImageGenerator {
     constructor() {
         this.canvas = document.getElementById('previewCanvas');
         this.ctx = this.canvas.getContext('2d', { alpha: false });
         
-        // 固定字体设置，确保跨平台一致性
-        this.fontFamily = 'Courier New, monospace';
+        // 禁用图像平滑以提高文字清晰度
+        this.ctx.imageSmoothingEnabled = false;
         
         // 默认配置
         this.config = {
-            width: 800,
-            fontSize: 16,
-            padding: 20,
+            width: 1200,
+            fontSize: 24,
+            padding: 30,
             lineHeight: 1.5,
             backgroundColor: '#000000',
-            textColor: '#FFFFFF'
+            textColor: '#FFFFFF',
+            fontFamilyEnglish: DEFAULT_FONT_ENGLISH,
+            fontFamilyChinese: DEFAULT_FONT_CHINESE
         };
+        
+        // 设备像素比，用于提高清晰度
+        this.dpr = window.devicePixelRatio || 1;
     }
     
     /**
@@ -27,6 +36,31 @@ class TerminalImageGenerator {
      */
     updateConfig(config) {
         this.config = { ...this.config, ...config };
+    }
+    
+    /**
+     * 检测字符是否为中文字符
+     */
+    isChinese(char) {
+        const code = char.charCodeAt(0);
+        // CJK Unified Ideographs: 4E00-9FFF
+        // CJK Unified Ideographs Extension A: 3400-4DBF
+        // CJK Compatibility Ideographs: F900-FAFF
+        return (code >= 0x4E00 && code <= 0x9FFF) ||
+               (code >= 0x3400 && code <= 0x4DBF) ||
+               (code >= 0xF900 && code <= 0xFAFF);
+    }
+    
+    /**
+     * 获取字符对应的字体
+     */
+    getFontForChar(char) {
+        const { fontSize, fontFamilyEnglish, fontFamilyChinese } = this.config;
+        if (this.isChinese(char)) {
+            return `${fontSize}px "${fontFamilyChinese}", SimHei, sans-serif`;
+        } else {
+            return `${fontSize}px "${fontFamilyEnglish}", "Courier New", monospace`;
+        }
     }
     
     /**
@@ -42,25 +76,42 @@ class TerminalImageGenerator {
                 continue;
             }
             
-            // 测量整行宽度
-            const metrics = this.ctx.measureText(line);
+            // 测量整行宽度 - 需要考虑混合字体
+            let totalWidth = 0;
+            let currentFont = '';
+            for (let char of line) {
+                const font = this.getFontForChar(char);
+                if (font !== currentFont) {
+                    this.ctx.font = font;
+                    currentFont = font;
+                }
+                totalWidth += this.ctx.measureText(char).width;
+            }
             
-            if (metrics.width <= maxWidth) {
+            if (totalWidth <= maxWidth) {
                 wrappedLines.push(line);
             } else {
                 // 需要换行
                 let currentLine = '';
+                let currentWidth = 0;
+                let currentFont = '';
                 const chars = line.split('');
                 
                 for (let char of chars) {
-                    const testLine = currentLine + char;
-                    const testMetrics = this.ctx.measureText(testLine);
+                    const font = this.getFontForChar(char);
+                    if (font !== currentFont) {
+                        this.ctx.font = font;
+                        currentFont = font;
+                    }
+                    const charWidth = this.ctx.measureText(char).width;
                     
-                    if (testMetrics.width > maxWidth && currentLine !== '') {
+                    if (currentWidth + charWidth > maxWidth && currentLine !== '') {
                         wrappedLines.push(currentLine);
                         currentLine = char;
+                        currentWidth = charWidth;
                     } else {
-                        currentLine = testLine;
+                        currentLine += char;
+                        currentWidth += charWidth;
                     }
                 }
                 
@@ -77,10 +128,10 @@ class TerminalImageGenerator {
      * 生成终端图片
      */
     generate(text) {
-        const { width, fontSize, padding, lineHeight, backgroundColor, textColor } = this.config;
+        const { width, fontSize, padding, lineHeight, backgroundColor, textColor, fontFamilyEnglish } = this.config;
         
-        // 设置字体（必须在测量之前设置）
-        this.ctx.font = `${fontSize}px ${this.fontFamily}`;
+        // 设置默认字体（必须在测量之前设置）
+        this.ctx.font = `${fontSize}px "${fontFamilyEnglish}", "Courier New", monospace`;
         
         // 计算可用宽度
         const availableWidth = width - (padding * 2);
@@ -94,24 +145,51 @@ class TerminalImageGenerator {
         // 计算画布高度
         const height = (lines.length * actualLineHeight) + (padding * 2);
         
-        // 设置画布尺寸
-        this.canvas.width = width;
-        this.canvas.height = height;
+        // 使用设备像素比提高清晰度
+        const scaledWidth = width * this.dpr;
+        const scaledHeight = height * this.dpr;
+        
+        // 设置画布实际尺寸（高分辨率）
+        this.canvas.width = scaledWidth;
+        this.canvas.height = scaledHeight;
+        
+        // 设置画布显示宽度，让CSS的height: auto维持纵横比
+        this.canvas.style.width = width + 'px';
+        this.canvas.style.height = ''; // 清除高度，让CSS控制以维持纵横比
+        
+        // 重置变换矩阵，避免累积缩放问题
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        
+        // 缩放上下文以匹配设备像素比
+        this.ctx.scale(this.dpr, this.dpr);
+        
+        // 禁用图像平滑以提高文字清晰度
+        this.ctx.imageSmoothingEnabled = false;
         
         // 填充背景色
         this.ctx.fillStyle = backgroundColor;
         this.ctx.fillRect(0, 0, width, height);
         
-        // 重新设置字体（画布尺寸改变后需要重新设置）
-        this.ctx.font = `${fontSize}px ${this.fontFamily}`;
+        // 设置文本样式
         this.ctx.fillStyle = textColor;
         this.ctx.textBaseline = 'top';
         
-        // 绘制文本
-        lines.forEach((line, index) => {
-            const x = padding;
-            const y = padding + (index * actualLineHeight);
-            this.ctx.fillText(line, x, y);
+        // 绘制文本 - 逐字符绘制以支持混合字体，但优化字体切换
+        lines.forEach((line, lineIndex) => {
+            let x = padding;
+            const y = padding + (lineIndex * actualLineHeight);
+            let currentFont = '';
+            
+            for (let char of line) {
+                // 仅在字体变化时切换
+                const font = this.getFontForChar(char);
+                if (font !== currentFont) {
+                    this.ctx.font = font;
+                    currentFont = font;
+                }
+                this.ctx.fillText(char, x, y);
+                x += this.ctx.measureText(char).width;
+            }
         });
         
         return {
@@ -150,9 +228,15 @@ function generateImage() {
     const width = parseInt(document.getElementById('widthInput').value) || 800;
     const fontSize = parseInt(document.getElementById('fontSizeInput').value) || 16;
     const padding = parseInt(document.getElementById('paddingInput').value) || 20;
+    const backgroundColor = document.getElementById('bgColorInput').value || '#000000';
+    const textColor = document.getElementById('textColorInput').value || '#FFFFFF';
+    const fontFamilyEnglish = document.getElementById('fontEnglishInput').value || DEFAULT_FONT_ENGLISH;
+    const fontFamilyChinese = document.getElementById('fontChineseInput').value || DEFAULT_FONT_CHINESE;
     
     if (!text.trim()) {
-        alert('请输入文字内容！');
+        // 清空整个画布
+        generator.ctx.clearRect(0, 0, generator.canvas.width, generator.canvas.height);
+        document.getElementById('imageInfo').textContent = '';
         return;
     }
     
@@ -160,7 +244,11 @@ function generateImage() {
     generator.updateConfig({
         width,
         fontSize,
-        padding
+        padding,
+        backgroundColor,
+        textColor,
+        fontFamilyEnglish,
+        fontFamilyChinese
     });
     
     // 生成图片
@@ -172,7 +260,40 @@ function generateImage() {
     
     // 显示输出区域
     document.getElementById('outputSection').classList.remove('hidden');
-    document.getElementById('downloadBtn').disabled = false;
+}
+
+// 跟踪是否已经设置了事件监听器
+let liveUpdateInitialized = false;
+
+/**
+ * 设置实时更新
+ */
+function setupLiveUpdate() {
+    // 防止重复设置
+    if (liveUpdateInitialized) {
+        return;
+    }
+    
+    const inputs = [
+        'textInput',
+        'widthInput', 
+        'fontSizeInput',
+        'paddingInput',
+        'bgColorInput',
+        'textColorInput',
+        'fontEnglishInput',
+        'fontChineseInput'
+    ];
+    
+    inputs.forEach(inputId => {
+        const element = document.getElementById(inputId);
+        if (element) {
+            // 只使用 input 事件以避免重复更新
+            element.addEventListener('input', generateImage);
+        }
+    });
+    
+    liveUpdateInitialized = true;
 }
 
 /**
@@ -199,6 +320,9 @@ Server running on http://localhost:3000
 Ready to accept connections...`;
     
     document.getElementById('textInput').value = exampleText;
+    
+    // 设置实时更新
+    setupLiveUpdate();
     
     // 自动生成示例图片
     generateImage();
